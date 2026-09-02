@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Compass — ask, spin, know</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #EFE8F7;
+    --ink-dim: #B3A6C9;
+    --void: #150F24;
+    --void-2: #1E1636;
+    --panel: #241B3F;
+    --line: #3A2C5C;
+    --gold: #D6AE6C;
+    --gold-dim: #9C8757;
+    --rose: #C97D8C;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 50% -10%, #2E2150 0%, transparent 60%),
+      var(--void);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:64px 20px 80px;
+  }
+  @media (max-width:600px){
+    body{padding:40px 16px 60px;}
+  }
+
+  .wrap{
+    width:100%;
+    max-width:520px;
+  }
+
+  .mark{
+    display:flex;
+    justify-content:center;
+    margin-bottom:22px;
+  }
+  .mark svg{ width:34px; height:34px; opacity:.85; }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-optical-sizing:auto;
+    text-align:center;
+    font-size:clamp(2rem, 6vw, 2.6rem);
+    letter-spacing:.01em;
+    margin:0 0 8px;
+    color:var(--ink);
+  }
+  .sub{
+    text-align:center;
+    color:var(--ink-dim);
+    font-size:.95rem;
+    margin:0 0 44px;
+    line-height:1.5;
+  }
+
+  label.field-label{
+    display:block;
+    font-size:.8rem;
+    color:var(--ink-dim);
+    margin-bottom:8px;
+  }
+
+  textarea#question{
+    width:100%;
+    resize:none;
+    background:var(--void-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    color:var(--ink);
+    font-family:'Fraunces', serif;
+    font-size:1.15rem;
+    line-height:1.4;
+    padding:16px 18px;
+    min-height:64px;
+    outline:none;
+    transition:border-color .2s ease;
+  }
+  textarea#question::placeholder{ color:#6E6088; }
+  textarea#question:focus{ border-color:var(--gold-dim); }
+
+  .section{ margin-bottom:30px; }
+
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:2px;
+  }
+  .chip{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    color:var(--ink);
+    border-radius:999px;
+    padding:7px 8px 7px 14px;
+    font-size:.88rem;
+  }
+  .chip button{
+    background:none;
+    border:none;
+    color:var(--ink-dim);
+    cursor:pointer;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:.85rem;
+    line-height:1;
+    padding:0;
+  }
+  .chip button:hover{ color:var(--rose); background:rgba(201,125,140,.12); }
+
+  .add-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .add-chip input{
+    background:transparent;
+    border:1px dashed var(--line);
+    border-radius:999px;
+    color:var(--ink);
+    font-size:.88rem;
+    padding:7px 14px;
+    width:128px;
+    outline:none;
+    font-family:'Work Sans', sans-serif;
+  }
+  .add-chip input:focus{ border-color:var(--gold-dim); }
+  .add-chip input::placeholder{ color:#6E6088; }
+
+  button.decide{
+    width:100%;
+    background:var(--gold);
+    color:#241A0E;
+    border:none;
+    border-radius:10px;
+    padding:16px;
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    letter-spacing:.01em;
+    cursor:pointer;
+    transition:transform .12s ease, background .2s ease;
+    margin-top:6px;
+  }
+  button.decide:hover{ background:#E2BD82; }
+  button.decide:active{ transform:scale(.98); }
+  button.decide:disabled{ opacity:.55; cursor:default; transform:none; }
+
+  .stage{
+    margin-top:36px;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:var(--void-2);
+    padding:40px 24px;
+    text-align:center;
+    min-height:132px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .stage::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:radial-gradient(circle at 50% 20%, rgba(214,174,108,.10), transparent 65%);
+    opacity:0;
+    transition:opacity .5s ease;
+    pointer-events:none;
+  }
+  .stage.settled::before{ opacity:1; }
+
+  .stage-empty{
+    color:#5C5079;
+    font-size:.92rem;
+  }
+
+  .result-word{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(1.9rem, 8vw, 2.7rem);
+    color:var(--ink);
+    letter-spacing:.01em;
+  }
+  .result-word.spinning{ color:var(--ink-dim); }
+  .result-word.settled{
+    color:var(--gold);
+    animation: settle .42s cubic-bezier(.2,1.4,.4,1);
+  }
+  @keyframes settle{
+    0%{ transform:scale(.85); opacity:.4; }
+    60%{ transform:scale(1.06); opacity:1; }
+    100%{ transform:scale(1); }
+  }
+
+  .asked-of{
+    margin-top:14px;
+    color:var(--ink-dim);
+    font-size:.85rem;
+    font-style:italic;
+    max-width:400px;
+  }
+
+  .log{
+    margin-top:44px;
+  }
+  .log h2{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:1rem;
+    color:var(--ink-dim);
+    margin:0 0 14px;
+  }
+  .log ul{
+    list-style:none;
+    margin:0; padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .log li{
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    padding-bottom:10px;
+    border-bottom:1px solid var(--line);
+    font-size:.88rem;
+  }
+  .log .q{
+    color:var(--ink);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .log .a{
+    color:var(--gold-dim);
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .log-empty{
+    color:#5C5079;
+    font-size:.85rem;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .result-word.settled{ animation:none; }
+    button.decide{ transition:none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="mark">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="18" stroke="#D6AE6C" stroke-width="1.2"/>
+      <path d="M20 6 L20 34 M6 20 L34 20" stroke="#D6AE6C" stroke-width="1"/>
+      <circle cx="20" cy="20" r="3.2" fill="#D6AE6C"/>
+    </svg>
+  </div>
+
+  <h1>The Compass</h1>
+  <p class="sub">Put your question to it. It will not think — it will just answer.</p>
+
+  <div class="section">
+    <label class="field-label" for="question">Your question</label>
+    <textarea id="question" placeholder="Ask something a yes or no could answer…"></textarea>
+  </div>
+
+  <div class="section">
+    <label class="field-label">Possible answers</label>
+    <div class="chips" id="chips"></div>
+    <div class="add-chip" style="margin-top:10px;">
+      <input type="text" id="newChip" placeholder="add another…" maxlength="24">
+    </div>
+  </div>
+
+  <button class="decide" id="decideBtn">Decide</button>
+
+  <div class="stage" id="stage">
+    <div class="stage-empty" id="stageEmpty">Your answer will appear here</div>
+  </div>
+  <div class="asked-of" id="askedOf" style="display:none; text-align:center; margin-left:auto; margin-right:auto;"></div>
+
+  <div class="log">
+    <h2>Past questions</h2>
+    <ul id="logList"></ul>
+    <div class="log-empty" id="logEmpty">Nothing asked yet.</div>
+  </div>
+
+</div>
+
+<script>
+  let options = ['Yes', 'No', 'Probably', 'Maybe', 'Unlikely', 'Ask again'];
+  const history = [];
+
+  const chipsEl = document.getElementById('chips');
+  const newChipInput = document.getElementById('newChip');
+  const questionEl = document.getElementById('question');
+  const decideBtn = document.getElementById('decideBtn');
+  const stage = document.getElementById('stage');
+  const stageEmpty = document.getElementById('stageEmpty');
+  const askedOf = document.getElementById('askedOf');
+  const logList = document.getElementById('logList');
+  const logEmpty = document.getElementById('logEmpty');
+
+  function renderChips(){
+    chipsEl.innerHTML = '';
+    options.forEach((opt, i) => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.innerHTML = `<span>${escapeHtml(opt)}</span>`;
+      const rm = document.createElement('button');
+      rm.textContent = '×';
+      rm.title = 'Remove';
+      rm.addEventListener('click', () => {
+        if(options.length <= 2) return;
+        options.splice(i, 1);
+        renderChips();
+      });
+      chip.appendChild(rm);
+      chipsEl.appendChild(chip);
+    });
+  }
+
+  function escapeHtml(s){
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  newChipInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      const val = newChipInput.value.trim();
+      if(val && !options.includes(val) && options.length < 10){
+        options.push(val);
+        renderChips();
+      }
+      newChipInput.value = '';
+    }
+  });
+
+  renderChips();
+
+  function renderLog(){
+    if(history.length === 0){
+      logEmpty.style.display = 'block';
+      logList.innerHTML = '';
+      return;
+    }
+    logEmpty.style.display = 'none';
+    logList.innerHTML = '';
+    history.slice().reverse().slice(0, 8).forEach(entry => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="q">${escapeHtml(entry.q)}</span><span class="a">${escapeHtml(entry.a)}</span>`;
+      logList.appendChild(li);
+    });
+  }
+
+  let spinning = false;
+
+  decideBtn.addEventListener('click', () => {
+    if(spinning) return;
+    if(options.length < 2) return;
+
+    const questionText = questionEl.value.trim();
+    spinning = true;
+    decideBtn.disabled = true;
+    stageEmpty.style.display = 'none';
+    askedOf.style.display = 'none';
+
+    stage.classList.remove('settled');
+    stage.innerHTML = '<div class="result-word spinning" id="resultWord"></div>';
+    const resultWord = document.getElementById('resultWord');
+
+    const finalIndex = Math.floor(Math.random() * options.length);
+    const totalTicks = 22;
+    let tick = 0;
+
+    function scheduleNext(){
+      const progress = tick / totalTicks;
+      // ease-out: delays grow from ~45ms to ~260ms
+      const delay = 45 + Math.pow(progress, 2.2) * 260;
+
+      const showFinal = tick >= totalTicks;
+      const idx = showFinal ? finalIndex : Math.floor(Math.random() * options.length);
+      resultWord.textContent = options[idx];
+
+      if(showFinal){
+        resultWord.classList.remove('spinning');
+        resultWord.classList.add('settled');
+        stage.classList.add('settled');
+        spinning = false;
+        decideBtn.disabled = false;
+
+        if(questionText){
+          askedOf.textContent = `“${questionText}”`;
+          askedOf.style.display = 'block';
+          history.push({ q: questionText, a: options[finalIndex] });
+          renderLog();
+        }
+        return;
+      }
+      tick++;
+      setTimeout(scheduleNext, delay);
+    }
+    scheduleNext();
+  });
+
+  questionEl.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' && (e.metaKey || e.ctrlKey)){
+      decideBtn.click();
+    }
+  });
+</script>
+</body>
+</html>
